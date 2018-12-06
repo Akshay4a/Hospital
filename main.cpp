@@ -1,47 +1,55 @@
 #include <iostream>
 #include <fstream>
-#include <process.h>
-#include <string>
+#include <string.h>
 #include <stdio.h>
 
 using namespace std;
 
 class Appointment
 {
-    int ID;
+  public:
     int charges;
-    int doc_ID;
-    int pat_ID;
     int date[3];
     int time[2];
 
-public:
+
 
     Appointment()
     {
         charges = 350;
     }
 
-    int ID_gen();
+    int doc_ID;
+    int pat_ID;
+    void add_to_file();
     void del();
 
 };
 
-void app_chk(int[]);
+void Appointment::add_to_file()
+{
+
+}
 
 class Doctor
 {
-    int ID;
-    char name[20];
+
     int dob[3];                      //all dates in DD/MM/YYYY
     char specialization[20];
 
 public:
 
+    char name[20];
+
+    int ret_ID()
+    {
+        return ID;
+    }
+
+    int ID;
     int ID_gen();
     void create();
     void display();
-    void add_to_file();
     void del_from_file();
 
 };
@@ -49,13 +57,21 @@ public:
 void Doctor::create()
 {
     cout << "Enter name:" << endl;
-    cin.getline(name, 20);
+    gets(name);
 
     cout << "Enter your date of birth (format: DD MM YYYY)" << endl;
     cin >> dob[0] >> dob[1] >> dob[2];
 
     cout << "Enter your specialization:" << endl;
-    cin.getline(specialization, 20);
+    gets(specialization);
+}
+
+void Doctor::display()
+{
+     puts(name);
+     cout << "   " << "Date of Birth: " << dob[0] << "/" << dob[1] << "/" << dob[2] << endl;
+     cout << "   " << "Specialization: " << puts(specialization);
+     cout << "   " << "ID: " << ID << endl;
 }
 
 class Patient
@@ -82,9 +98,15 @@ public:
         return no_of_days*500;
     }
 
+    int ret_ID()
+    {
+        return ID;
+    }
     int ID_gen();
     void create();
+
 };
+
 
 void Patient::create()
 {
@@ -129,7 +151,7 @@ void home_sc()
 
     case 2: patient(); break;
 
-    default: exit(0);
+    default: break;
 
     }
 
@@ -152,10 +174,8 @@ Doctor sd(int p, char name[20])
 
             if(!strcmp(doc1.name, name))
             {
-                cout << i + 1 << ". "; puts(doc1.name);
-                cout << "   " << "Date of Birth: " << doc1.dob[0] << "/" << doc1.dob[1] << "/" << doc1.dob[2] << endl;
-                cout << "   " << "Specialization: " << puts(doc1.specialization);
-                cout << "   " << "ID: " << doc1.ID << endl;
+                cout << i + 1 << ". ";
+                doc1.display();
 
                 A[i] = fin.tellg();
 
@@ -174,11 +194,15 @@ Doctor sd(int p, char name[20])
         return doc1;
     }
 
+    else if(p == 1)
+    {
 
+    }
+
+    fin.close();
 }
 
 void add_doc();
-void add_pat();
 
 void doc()
 {
@@ -189,16 +213,20 @@ void doc()
     cout << "3. Remove Doctor" << endl;
     cout << "0. Log out" << endl;
 
+    cin >> s;
+
     switch(s)
     {
         case 1: add_doc(); break;
 
-        case 2:  break;
+        case 2: break;
 
-        case 3: del();
+        case 3:  break;
 
-        default: home_sc();
+        default: home_sc(); break;
     }
+
+    home_sc();
 }
 
 void add_doc()
@@ -207,25 +235,13 @@ void add_doc()
 
     Doctor doc1;
 
-    doc1::create();
+    doc1.create();
 
     fout.write((char*)&doc1, sizeof(doc1));
 
     fout.close();
 }
 
-void add_pat()
-{
-    Patient pat;
-
-    pat::create();
-
-    ofstream fout("Patient", ios::out|ios::app|ios::binary);
-
-    fout.write((char*)&pat, sizeof(pat));
-
-    fout.close();
-}
 void new_app();
 
 void patient()
@@ -241,7 +257,7 @@ void patient()
     {
         case 1: new_app(); break;
 
-        case 2: Appointment::del(); break;
+        case 2:
 
         case 3:
 
@@ -249,12 +265,15 @@ void patient()
     }
 }
 
+int check_app(int[], int[], int);
+
+void create_app_pat(Doctor);
+
 void new_app()
 {
     int s;
     char name[20];
     Doctor doct;
-    void func(Doctor);
 
     cout << "Find Doctor by:" << endl;
     cout << "1. Name" << endl;
@@ -267,32 +286,94 @@ void new_app()
     {
         case 1: cin.getline(name, 20);
                 doct = sd(0, name);
-                func(doct);
+                create_app_pat(doct);
                 break;
 
         case 2: cin.getline(name, 20);
                 doct = sd(1, name);
-                func(doct);
+                create_app_pat(doct);
                 break;
 
         default: patient();
 
     }
 
-    void func(Doctor doct)
+}
+    void create_app_pat(Doctor doct)
     {
-        ofstream fout("Appointment", ios::out|ios::app|ios::binary);
-
         int date[3];
+        int time[2];
 
-        cout << "Enter your preferred appointment date: ";
-        cin >> date[0] >> date[1] >> date[2];
+        int i = 1;
 
+        while(i)
+        {
+            cout << "Enter your preferred appointment date: ";
+            cin >> date[0] >> date[1] >> date[2];
 
+            cout << "Enter your preferred appointment time: ";
+            cin >> time[0] >> time[1];
+
+            i = check_app(date, time, doct.ID);
+
+            if(i)
+            cout << "Appointment already exists, Please enter a different date and time" << endl;
+
+        }
+
+        Patient pat;
+
+        pat.create();
+
+        ofstream fout1("Patient", ios::out | ios::app | ios::binary);
+
+        fout1.write((char*)&pat, sizeof(pat));
+
+        fout1.close();
+
+        Appointment app;
+
+        app.doc_ID = doct.ID;
+        app.pat_ID = pat.ret_ID();
+
+        ofstream fout2("Appointment", ios::out | ios::app | ios::binary);
+
+        fout2.write((char*)&app, sizeof(app));
+
+        fout2.close();
 
     }
 
 
-}
 
+
+int check_app(int date[3], int time[2], int ID)
+{
+    ifstream fin("Appointment", ios::in|ios::binary);
+
+    fin.seekg(0);
+
+    Appointment app1;
+
+    int flag = 0;
+
+    while(!fin.eof())
+    {
+        fin.read((char*)&app1, sizeof(app1));
+
+        if(app1.doc_ID == ID && app1.date == date && app1.time == time)
+        {
+            flag = 1;
+            break;
+        }
+    }
+
+    fin.close();
+
+    if(flag = 1)
+        return 1;
+    else
+        return 0;
+
+}
 
