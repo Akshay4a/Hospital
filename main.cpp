@@ -231,6 +231,7 @@ void doc()
 
 void add_doc()
 {
+    getchar();
     ofstream fout("Doctor", ios::out|ios::app|ios::binary);
 
     Doctor doc1;
